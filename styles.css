@@ -555,7 +555,7 @@ img { max-width: 100%; display: block; }
   .hero-ctas .btn { width: 100%; max-width: 340px; }
 
   .hero-fullbleed { min-height: 720px; }
-  .hero-fullbleed .hero-bg { object-position: 72% 38%; }
+  .hero-fullbleed .hero-bg { object-position: 58% 38%; }
   .hero-fullbleed .hero-scrim {
     background: linear-gradient(90deg, var(--color-bg) 0%, rgba(13,13,13,.92) 34%, rgba(13,13,13,.4) 62%, rgba(13,13,13,0) 85%);
   }
