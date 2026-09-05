@@ -296,8 +296,16 @@ img { max-width: 100%; display: block; }
   z-index: 1;
   background: linear-gradient(180deg, rgba(13,13,13,.55) 0%, rgba(13,13,13,.88) 55%, var(--color-bg) 100%);
 }
-.hero-fullbleed .hero-inner { position: relative; z-index: 2; }
-.hero-fullbleed .hero-copy { max-width: 620px; }
+.hero-fullbleed .hero-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-left: clamp(24px, 6vw, 100px);
+  padding-right: var(--container-pad);
+}
+.hero-fullbleed .hero-copy { max-width: 620px; width: 100%; }
 .hero-logo {
   position: absolute;
   right: var(--container-pad);
