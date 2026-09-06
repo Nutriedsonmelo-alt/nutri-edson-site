@@ -549,6 +549,8 @@ img { max-width: 100%; display: block; }
   .hero-fullbleed .hero-scrim {
     background: linear-gradient(90deg, rgba(13,13,13,.88) 0%, rgba(13,13,13,.5) 42%, rgba(13,13,13,0) 72%);
   }
+  .site-header .brand { display: none; }
+  .site-header .header-inner { justify-content: flex-end; }
   .hero-fullbleed .hero-logo { display: none; }
   .hero-monogram {
     display: block;
