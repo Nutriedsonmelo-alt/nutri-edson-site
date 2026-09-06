@@ -556,11 +556,11 @@ img { max-width: 100%; display: block; }
     display: block;
     width: 54px;
     height: auto;
-    margin: 0 auto var(--space-1);
+    margin: -56px auto var(--space-1);
   }
   .hero-fullbleed .eyebrow {
     text-align: center;
-    margin-bottom: var(--space-6);
+    margin-bottom: calc(var(--space-6) + 56px);
   }
   .hero-fullbleed h1 { max-width: 62%; }
 }
