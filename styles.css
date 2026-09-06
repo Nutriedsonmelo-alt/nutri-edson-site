@@ -526,6 +526,13 @@ img { max-width: 100%; display: block; }
   .reveal { opacity: 1; transform: none; transition: none; }
 }
 
+/* ===== Hero — versão mais leve no mobile ===== */
+@media (max-width: 639px) {
+  .hero-fullbleed .hero-sub { display: none; }
+  .hero-fullbleed .hero-ctas .btn-support { display: none; }
+  .hero-fullbleed .hero-ctas .btn { padding: 14px 20px; }
+}
+
 /* ===== Responsivo — tablet e acima ===== */
 @media (min-width: 640px) {
   .hero-ctas { flex-direction: row; flex-wrap: wrap; }
