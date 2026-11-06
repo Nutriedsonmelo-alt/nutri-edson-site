@@ -2,6 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<script>
+/* Tema: usa a escolha salva; sem escolha, segue o do aparelho */
+(function () {
+  var t = null;
+  try { t = localStorage.getItem("theme"); } catch (e) {}
+  if (t !== "dark" && t !== "light") t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  if (t === "dark") document.documentElement.setAttribute("data-theme", "dark");
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Termos de Uso | Edson Melo Nutricionista</title>
 <meta name="description" content="Termos de Uso do site de Edson Melo, nutricionista.">

@@ -177,3 +177,54 @@ carousel("rtrack", "rprev", "rnext", "rcount");
   });
   io.observe(cta);
 })();
+
+// Foto reage ao mouse e ao toque: inclina de leve e passa um brilho dourado
+(function () {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  document.querySelectorAll(".hero-fullbleed picture, .photo-frame").forEach((el) => {
+    el.classList.add("tilt");
+    let timer;
+    const aim = (e) => {
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      el.style.setProperty("--ry", ((x - 0.5) * 8) + "deg");
+      el.style.setProperty("--rx", ((0.5 - y) * 8) + "deg");
+      el.style.setProperty("--sx", (x * 100) + "%");
+      el.style.setProperty("--sy", (y * 100) + "%");
+    };
+    const off = () => {
+      el.classList.remove("active");
+      el.style.setProperty("--rx", "0deg");
+      el.style.setProperty("--ry", "0deg");
+    };
+    el.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") el.classList.add("active"); });
+    el.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") aim(e); });
+    el.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") off(); });
+    // Toque no celular: reage enquanto o dedo está na foto e volta logo depois
+    el.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse") return;
+      clearTimeout(timer); aim(e); el.classList.add("active");
+    });
+    ["pointerup", "pointercancel"].forEach((t) => el.addEventListener(t, (e) => {
+      if (e.pointerType === "mouse") return;
+      timer = setTimeout(off, 700);
+    }));
+  });
+})();
+
+// Botão de tema: alterna claro/escuro e lembra a escolha neste aparelho
+(function () {
+  const btn = document.getElementById("themeToggle");
+  if (!btn) return;
+  const root = document.documentElement;
+  const sync = () => btn.setAttribute("aria-pressed", String(root.getAttribute("data-theme") === "dark"));
+  sync();
+  btn.addEventListener("click", () => {
+    const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    root.classList.add("theme-fade");
+    if (next === "dark") root.setAttribute("data-theme", "dark"); else root.removeAttribute("data-theme");
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    sync();
+    setTimeout(() => root.classList.remove("theme-fade"), 400);
+  });
+})();
