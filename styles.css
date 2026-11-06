@@ -1318,3 +1318,56 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
   .final-photo { display: block; flex: 0 0 min(34%, 340px); aspect-ratio: 4 / 5; border-radius: 28px; }
   .final-photo img { width: 100%; height: 100%; object-fit: cover; }
 }
+
+/* ============================================================
+   RÉGUA LIGADA DIRETO À ROLAGEM (sem atraso) + RODAPÉ CURTO + CONTORNO NO ESCURO
+   ============================================================ */
+@supports (animation-timeline: scroll()) {
+  .scroll-timeline .ruler-track {
+    animation: rulerMove linear both;
+    animation-timeline: scroll(root block);
+    will-change: transform;
+  }
+  .scroll-timeline .progress {
+    transform: scaleX(0);
+    animation: progGrow linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+@keyframes rulerMove { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(var(--ruler-shift, -2800px), 0, 0); } }
+@keyframes progGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Rodapé compacto: marca + ícones numa linha, links legais embaixo */
+.site-footer { padding: var(--space-3) 0 var(--space-2); margin-top: var(--space-4); }
+.footer-compact { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.footer-brand .brand { font-size: 1.15rem; margin: 0; letter-spacing: .08em; text-transform: uppercase; }
+.footer-tag { font-size: 12px; margin: 0; }
+.footer-icons { display: flex; gap: 8px; flex: none; }
+.footer-icons a {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1px solid var(--color-hairline);
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background .2s, color .2s, border-color .2s, transform .2s;
+}
+.footer-icons a:hover { background: var(--fill); border-color: var(--fill); color: #1A1917; transform: translateY(-2px); }
+.footer-icons svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.footer-legal {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px var(--space-3);
+  margin-top: var(--space-2); padding-top: var(--space-2);
+  border-top: 1px solid var(--color-hairline);
+  font-size: 12.5px; color: var(--color-text-secondary);
+}
+.footer-legal p { margin: 0; color: inherit; }
+.footer-legal a:hover { color: var(--color-gold); }
+@media (max-width: 559px) { body { padding-bottom: 76px; } }
+
+/* Tema escuro: quadrados de "O que você recebe" e dos atendimentos com contorno dourado */
+[data-theme="dark"] #acompanhamento .slide,
+[data-theme="dark"] .mode {
+  background: #232321;
+  border: 1px solid rgba(201, 165, 104, .55);
+  box-shadow: 0 0 0 1px rgba(201, 165, 104, .08), 0 18px 40px -24px rgba(0, 0, 0, .9);
+}
+[data-theme="dark"] #acompanhamento .slide:hover { border-color: var(--color-gold); }

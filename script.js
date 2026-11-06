@@ -116,13 +116,15 @@ document.querySelectorAll(".accordion-item").forEach((item) => {
   });
 })();
 
-// Régua de medidas: os números passam conforme a página rola; linha de progresso no topo
+// Régua de medidas: os números passam conforme a página rola; linha de progresso no topo.
+// Onde o navegador permite (Chrome, Edge, Safari novo), o CSS liga a régua direto à rolagem,
+// sem passar pelo JavaScript: fica sempre sincronizada e fluida. No resto, usa o JS como reserva.
 (function () {
   const ruler = document.getElementById("ruler");
   const track = document.getElementById("rulerTrack");
   const bar = document.getElementById("progress");
   if (track) {
-    const STEP = 12, COUNT = 560; // um traço a cada 12px; número a cada 10 traços
+    const COUNT = 700; // um traço a cada 12px; número a cada 10 traços
     let html = "";
     for (let i = 0; i < COUNT; i++) {
       const cls = i % 10 === 0 ? "tick big" : i % 5 === 0 ? "tick mid" : "tick";
@@ -131,19 +133,32 @@ document.querySelectorAll(".accordion-item").forEach((item) => {
     track.innerHTML = html;
   }
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const native = window.CSS && CSS.supports && CSS.supports("animation-timeline: scroll()");
+  const root = document.documentElement;
+  const maxScroll = () => Math.max(1, root.scrollHeight - window.innerHeight);
+
+  if (native && !reduce) {
+    root.classList.add("scroll-timeline");
+    const setShift = () => root.style.setProperty("--ruler-shift", (-maxScroll() * 0.5) + "px");
+    setShift();
+    window.addEventListener("resize", setShift, { passive: true });
+    window.addEventListener("load", setShift);
+    if ("ResizeObserver" in window) new ResizeObserver(setShift).observe(document.body);
+    return;
+  }
+
   let ticking = false;
   function paint() {
     ticking = false;
     const y = Math.max(0, window.scrollY);       // a rolagem elástica do Mac/celular dá valores negativos
-    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    if (bar) bar.style.setProperty("--p", Math.min(1, y / max));
+    if (bar) bar.style.setProperty("--p", Math.min(1, y / maxScroll()));
     if (track && !reduce) track.style.transform = "translate3d(" + (-Math.round(y * 0.5)) + "px,0,0)";
   }
   function update() { if (!ticking) { ticking = true; requestAnimationFrame(paint); } }
   paint();
   window.addEventListener("scroll", update, { passive: true });
   window.addEventListener("resize", update, { passive: true });
-  window.addEventListener("pageshow", paint);    // voltar para a página pelo botão "voltar" do navegador
+  window.addEventListener("pageshow", paint);
 })();
 
 // Carrosséis (etapas do acompanhamento e depoimentos)
