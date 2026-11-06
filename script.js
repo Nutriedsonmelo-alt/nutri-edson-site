@@ -57,21 +57,43 @@ document.querySelectorAll(".accordion-item").forEach((item) => {
   });
 });
 
-// Contador animado (começa quando o número aparece na tela)
+// Contador estilo odômetro: cada dígito "gira" até o número final (começa quando aparece na tela)
 (function () {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.querySelectorAll("[data-count]").forEach((el) => {
     if (reduce) return;
-    const target = parseInt(el.dataset.count, 10);
+    const digits = String(parseInt(el.dataset.count, 10)).split("");
+    const label = "+" + digits.join("");
+    el.setAttribute("aria-label", label);
+    el.textContent = "";
+    el.classList.add("odo");
+    const plus = document.createElement("span");
+    plus.className = "odo-plus"; plus.setAttribute("aria-hidden", "true"); plus.textContent = "+";
+    el.appendChild(plus);
+    const cols = digits.map((d, i) => {
+      const turns = 2 + i;                      // dígitos à direita giram mais
+      const box = document.createElement("span");
+      box.className = "odo-d"; box.setAttribute("aria-hidden", "true");
+      const col = document.createElement("span");
+      col.className = "odo-col";
+      let html = "";
+      for (let n = 0; n <= turns * 10 + Number(d); n++) html += "<i>" + (n % 10) + "</i>";
+      col.innerHTML = html;
+      col.style.setProperty("--end", turns * 10 + Number(d));
+      col.style.transitionDuration = (1.5 + i * 0.35) + "s";
+      box.appendChild(col);
+      el.appendChild(box);
+      return col;
+    });
     const run = () => {
-      let t0 = null;
-      const tick = (ts) => {
-        if (t0 === null) t0 = ts;
-        const p = Math.min(1, (ts - t0) / 1500);
-        el.textContent = "+" + Math.round(target * (1 - Math.pow(1 - p, 3)));
-        if (p < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
+      setTimeout(() => {
+        cols.forEach((c) => c.classList.add("go"));
+        const last = cols[cols.length - 1];
+        last.addEventListener("transitionend", () => {
+          el.classList.add("done");
+          const li = el.closest("li"); if (li) li.classList.add("celebrate");
+        }, { once: true });
+      }, 450);
     };
     const io = new IntersectionObserver((list) => {
       if (list[0].isIntersecting) { io.disconnect(); run(); }
