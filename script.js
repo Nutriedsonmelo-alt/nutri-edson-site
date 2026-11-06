@@ -85,18 +85,32 @@ document.querySelectorAll(".accordion-item").forEach((item) => {
       el.appendChild(box);
       return col;
     });
-    const run = () => {
-      setTimeout(() => {
+    const HOLD = 3200;                         // tempo com o número final na tela antes de recomeçar
+    let timer = null, visible = false, running = false;
+    const reset = () => {
+      el.classList.remove("done");
+      const li = el.closest("li"); if (li) li.classList.remove("celebrate");
+      cols.forEach((c) => { c.style.transition = "none"; c.classList.remove("go"); });
+      void el.offsetWidth;                      // força o recomeço instantâneo em zero
+      cols.forEach((c, i) => { c.style.transition = ""; c.style.transitionDuration = (1.5 + i * 0.35) + "s"; });
+    };
+    const cycle = () => {
+      if (!visible) { running = false; return; }
+      running = true;
+      timer = setTimeout(() => {
         cols.forEach((c) => c.classList.add("go"));
         const last = cols[cols.length - 1];
         last.addEventListener("transitionend", () => {
           el.classList.add("done");
           const li = el.closest("li"); if (li) li.classList.add("celebrate");
+          timer = setTimeout(() => { reset(); cycle(); }, HOLD);
         }, { once: true });
       }, 450);
     };
+    const run = () => { if (!running) cycle(); };
     const io = new IntersectionObserver((list) => {
-      if (list[0].isIntersecting) { io.disconnect(); run(); }
+      visible = list[0].isIntersecting;
+      if (visible) run();
     });
     io.observe(el);
   });
@@ -117,16 +131,19 @@ document.querySelectorAll(".accordion-item").forEach((item) => {
     track.innerHTML = html;
   }
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function update() {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    if (bar) bar.style.setProperty("--p", max > 0 ? Math.min(1, window.scrollY / max) : 0);
-    if (track && !reduce) {
-      track.style.transform = "translateX(" + (-window.scrollY * 0.5) + "px)";
-    }
+  let ticking = false;
+  function paint() {
+    ticking = false;
+    const y = Math.max(0, window.scrollY);       // a rolagem elástica do Mac/celular dá valores negativos
+    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    if (bar) bar.style.setProperty("--p", Math.min(1, y / max));
+    if (track && !reduce) track.style.transform = "translate3d(" + (-Math.round(y * 0.5)) + "px,0,0)";
   }
-  update();
+  function update() { if (!ticking) { ticking = true; requestAnimationFrame(paint); } }
+  paint();
   window.addEventListener("scroll", update, { passive: true });
   window.addEventListener("resize", update, { passive: true });
+  window.addEventListener("pageshow", paint);    // voltar para a página pelo botão "voltar" do navegador
 })();
 
 // Carrosséis (etapas do acompanhamento e depoimentos)
