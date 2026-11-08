@@ -200,7 +200,8 @@ function carousel(trackId, prevId, nextId, countId, dotsSel) {
   window.addEventListener("pointermove", (e) => { if (down) track.scrollLeft = startLeft - (e.clientX - startX); });
   window.addEventListener("pointerup", () => {
     if (!down) return;
-    down = false; track.classList.remove("dragging"); goTo(current());
+    down = false; track.classList.remove("dragging");
+    if (track.style.scrollSnapType !== "none") goTo(current());   // na esteira automática não encaixa: fica fluido
   });
   track.addEventListener("dragstart", (e) => e.preventDefault());
   update();
@@ -283,12 +284,15 @@ carousel("rtrack", "rprev", "rnext", "rcount");
   });
 })();
 
-// Antes e depois: rola sozinho, sem pausa e bem devagar (como uma esteira); para de vez quando a pessoa toca/clica
+// Antes e depois: rola sozinho, sem pausa e bem devagar (como uma esteira).
+// Ao tocar/clicar/arrastar, pausa; se a pessoa largar, volta a rolar sozinho depois de uns 5 segundos.
 (function () {
   const track = document.getElementById("btrack");
   if (!track || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const originals = Array.from(track.children);
   const SPEED = 38;                              // pixels por segundo (lento)
+  const RESUME_AFTER = 5000;                     // volta a rolar depois de 5 s sem mexer
+  const RAMP = 1100;                             // a esteira acelera suave ao voltar
   // cópia dos cartões ao final, para a esteira emendar sem salto
   const clones = originals.map((el) => {
     const c = el.cloneNode(true);
@@ -298,36 +302,39 @@ carousel("rtrack", "rprev", "rnext", "rcount");
     return c;
   });
   const cycle = () => clones[0].offsetLeft - originals[0].offsetLeft;
-  let raf = null, last = 0, pos = 0, stopped = false, visible = false;
+  let raf = null, last = 0, pos = 0, ramp = 0, holding = false, waiting = false, visible = false, timer = null;
   track.style.scrollSnapType = "none";            // o encaixe atrapalharia a rolagem contínua
   function frame(ts) {
-    if (stopped || !visible || document.hidden) { raf = null; return; }
+    if (holding || waiting || !visible || document.hidden) { raf = null; return; }
     if (!last) last = ts;
     const dt = Math.min(64, ts - last); last = ts;
-    pos += (SPEED * dt) / 1000;
+    ramp = Math.min(1, ramp + dt / RAMP);
+    pos += (SPEED * ramp * dt) / 1000;
     const w = cycle();
     if (w > 0 && pos >= w) pos -= w;             // volta ao início sem pular
     track.scrollLeft = pos;
     raf = requestAnimationFrame(frame);
   }
   function start() {
-    if (stopped || raf || !visible || document.hidden) return;
-    pos = track.scrollLeft; last = 0;
+    if (raf || holding || waiting || !visible || document.hidden) return;
+    pos = track.scrollLeft; last = 0; ramp = 0;
     raf = requestAnimationFrame(frame);
   }
   function pause() { if (raf) cancelAnimationFrame(raf); raf = null; }
-  function stop() {
-    if (stopped) return;
-    stopped = true; pause();
-    const w = cycle();
-    if (w > 0 && track.scrollLeft >= w) track.scrollLeft -= w;   // sai da cópia para a original
-    clones.forEach((c) => c.remove());
-    track.style.scrollSnapType = "";               // devolve o encaixe para a pessoa navegar
+  function scheduleResume() {
+    clearTimeout(timer);
+    waiting = true;
+    timer = setTimeout(() => { waiting = false; start(); }, RESUME_AFTER);
   }
-  // qualquer toque, clique ou arrasto na faixa de fotos, ou nas setas, encerra a rolagem
-  track.addEventListener("pointerdown", stop);
-  track.addEventListener("keydown", stop);
-  ["bprev", "bnext"].forEach((id) => { const b = document.getElementById(id); if (b) b.addEventListener("click", stop); });
+  function touched() { holding = false; pause(); scheduleResume(); }
+  // segurando (dedo ou mouse): fica parado; ao largar, espera 3 s e volta
+  track.addEventListener("pointerdown", () => { holding = true; waiting = true; pause(); clearTimeout(timer); });
+  window.addEventListener("pointerup", () => { if (holding) touched(); });
+  window.addEventListener("pointercancel", () => { if (holding) touched(); });
+  // rolagem feita pela pessoa (inércia do dedo, roda do mouse, setas) também adia a volta
+  track.addEventListener("scroll", () => { if (!raf && !holding) scheduleResume(); }, { passive: true });
+  track.addEventListener("keydown", touched);
+  ["bprev", "bnext"].forEach((id) => { const b = document.getElementById(id); if (b) b.addEventListener("click", touched); });
   new IntersectionObserver((list) => { visible = list[0].isIntersecting; visible ? start() : pause(); }, { threshold: 0.3 }).observe(track);
   document.addEventListener("visibilitychange", () => { document.hidden ? pause() : start(); });
 })();
