@@ -284,26 +284,49 @@ carousel("rtrack", "rprev", "rnext", "rcount");
   });
 })();
 
-// Antes e depois: rola sozinho, sem pausa e bem devagar (como uma esteira).
-// Ao tocar/clicar/arrastar, pausa; se a pessoa largar, volta a rolar sozinho depois de uns 5 segundos.
+// Antes e depois: esteira automática, lenta e contínua.
+// Para ficar suave também no celular, o movimento automático usa "transform" (feito pela placa de vídeo,
+// com pixels fracionados), e não a rolagem da faixa, que no celular anda de pixel em pixel e engasga.
+// Quando a pessoa toca, a faixa vira rolagem normal (dedo/mouse); 5 s depois de largar, a esteira volta.
 (function () {
   const track = document.getElementById("btrack");
   if (!track || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const originals = Array.from(track.children);
   const SPEED = 38;                              // pixels por segundo (lento)
   const RESUME_AFTER = 5000;                     // volta a rolar depois de 5 s sem mexer
   const RAMP = 1100;                             // a esteira acelera suave ao voltar
+  // coloca os cartões numa faixa interna que pode deslizar por transform
+  const inner = document.createElement("div");
+  inner.className = "track-inner";
+  while (track.firstChild) inner.appendChild(track.firstChild);
+  track.appendChild(inner);
+  const originals = Array.from(inner.children);
   // cópia dos cartões ao final, para a esteira emendar sem salto
   const clones = originals.map((el) => {
     const c = el.cloneNode(true);
     c.setAttribute("aria-hidden", "true");
     c.querySelectorAll("img").forEach((i) => { i.loading = "eager"; });
-    track.appendChild(c);
+    inner.appendChild(c);
     return c;
   });
   const cycle = () => clones[0].offsetLeft - originals[0].offsetLeft;
-  let raf = null, last = 0, pos = 0, ramp = 0, holding = false, waiting = false, visible = false, timer = null;
+  let raf = null, last = 0, pos = 0, ramp = 0, mode = "auto";
+  let holding = false, waiting = false, visible = false, timer = null;
   track.style.scrollSnapType = "none";            // o encaixe atrapalharia a rolagem contínua
+
+  function toManual() {                           // da esteira (transform) para a rolagem normal
+    if (mode === "manual") return;
+    inner.style.transform = "";
+    track.scrollLeft = pos;
+    mode = "manual";
+  }
+  function toAuto() {                             // da rolagem normal para a esteira (transform)
+    const w = cycle();
+    pos = track.scrollLeft;
+    if (w > 0 && pos >= w) pos -= w;
+    track.scrollLeft = 0;
+    inner.style.transform = "translate3d(" + (-pos) + "px,0,0)";
+    mode = "auto";
+  }
   function frame(ts) {
     if (holding || waiting || !visible || document.hidden) { raf = null; return; }
     if (!last) last = ts;
@@ -312,12 +335,13 @@ carousel("rtrack", "rprev", "rnext", "rcount");
     pos += (SPEED * ramp * dt) / 1000;
     const w = cycle();
     if (w > 0 && pos >= w) pos -= w;             // volta ao início sem pular
-    track.scrollLeft = pos;
+    inner.style.transform = "translate3d(" + (-pos) + "px,0,0)";
     raf = requestAnimationFrame(frame);
   }
   function start() {
     if (raf || holding || waiting || !visible || document.hidden) return;
-    pos = track.scrollLeft; last = 0; ramp = 0;
+    if (mode === "manual") toAuto();
+    last = 0; ramp = 0;
     raf = requestAnimationFrame(frame);
   }
   function pause() { if (raf) cancelAnimationFrame(raf); raf = null; }
@@ -326,13 +350,14 @@ carousel("rtrack", "rprev", "rnext", "rcount");
     waiting = true;
     timer = setTimeout(() => { waiting = false; start(); }, RESUME_AFTER);
   }
-  function touched() { holding = false; pause(); scheduleResume(); }
-  // segurando (dedo ou mouse): fica parado; ao largar, espera 3 s e volta
-  track.addEventListener("pointerdown", () => { holding = true; waiting = true; pause(); clearTimeout(timer); });
+  function touched() { holding = false; pause(); toManual(); scheduleResume(); }
+  // segurando (dedo ou mouse): vira rolagem normal e fica parado; ao largar, espera 5 s e volta
+  // (captura primeiro, antes do arrasto do mouse ler a posição da faixa)
+  track.addEventListener("pointerdown", () => { holding = true; waiting = true; pause(); clearTimeout(timer); toManual(); }, true);
   window.addEventListener("pointerup", () => { if (holding) touched(); });
   window.addEventListener("pointercancel", () => { if (holding) touched(); });
   // rolagem feita pela pessoa (inércia do dedo, roda do mouse, setas) também adia a volta
-  track.addEventListener("scroll", () => { if (!raf && !holding) scheduleResume(); }, { passive: true });
+  track.addEventListener("scroll", () => { if (mode === "manual" && !raf && !holding) scheduleResume(); }, { passive: true });
   track.addEventListener("keydown", touched);
   ["bprev", "bnext"].forEach((id) => { const b = document.getElementById(id); if (b) b.addEventListener("click", touched); });
   new IntersectionObserver((list) => { visible = list[0].isIntersecting; visible ? start() : pause(); }, { threshold: 0.3 }).observe(track);

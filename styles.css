@@ -1486,3 +1486,6 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
     right: max(var(--container-pad), calc((100vw - var(--container-max)) / 2 + var(--container-pad)));
   }
 }
+
+/* Faixa interna da esteira de antes e depois (desliza por transform, suave no celular) */
+.track-inner { display: flex; gap: 16px; width: max-content; will-change: transform; }
