@@ -1474,3 +1474,15 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
   font-size: 13.5px; color: var(--color-text);
 }
 .mode-places svg { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--color-gold); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ===== Topo no desktop: texto alinhado com a marca do cabeçalho e foto alinhada à borda do conteúdo ===== */
+@media (min-width: 860px) {
+  .hero-fullbleed .hero-inner {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--container-pad);
+  }
+  .hero-photo {
+    right: max(var(--container-pad), calc((100vw - var(--container-max)) / 2 + var(--container-pad)));
+  }
+}

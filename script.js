@@ -282,3 +282,52 @@ carousel("rtrack", "rprev", "rnext", "rcount");
     setTimeout(() => root.classList.remove("theme-fade"), 400);
   });
 })();
+
+// Antes e depois: rola sozinho, sem pausa e bem devagar (como uma esteira); para de vez quando a pessoa toca/clica
+(function () {
+  const track = document.getElementById("btrack");
+  if (!track || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const originals = Array.from(track.children);
+  const SPEED = 38;                              // pixels por segundo (lento)
+  // cópia dos cartões ao final, para a esteira emendar sem salto
+  const clones = originals.map((el) => {
+    const c = el.cloneNode(true);
+    c.setAttribute("aria-hidden", "true");
+    c.querySelectorAll("img").forEach((i) => { i.loading = "eager"; });
+    track.appendChild(c);
+    return c;
+  });
+  const cycle = () => clones[0].offsetLeft - originals[0].offsetLeft;
+  let raf = null, last = 0, pos = 0, stopped = false, visible = false;
+  track.style.scrollSnapType = "none";            // o encaixe atrapalharia a rolagem contínua
+  function frame(ts) {
+    if (stopped || !visible || document.hidden) { raf = null; return; }
+    if (!last) last = ts;
+    const dt = Math.min(64, ts - last); last = ts;
+    pos += (SPEED * dt) / 1000;
+    const w = cycle();
+    if (w > 0 && pos >= w) pos -= w;             // volta ao início sem pular
+    track.scrollLeft = pos;
+    raf = requestAnimationFrame(frame);
+  }
+  function start() {
+    if (stopped || raf || !visible || document.hidden) return;
+    pos = track.scrollLeft; last = 0;
+    raf = requestAnimationFrame(frame);
+  }
+  function pause() { if (raf) cancelAnimationFrame(raf); raf = null; }
+  function stop() {
+    if (stopped) return;
+    stopped = true; pause();
+    const w = cycle();
+    if (w > 0 && track.scrollLeft >= w) track.scrollLeft -= w;   // sai da cópia para a original
+    clones.forEach((c) => c.remove());
+    track.style.scrollSnapType = "";               // devolve o encaixe para a pessoa navegar
+  }
+  // qualquer toque, clique ou arrasto na faixa de fotos, ou nas setas, encerra a rolagem
+  track.addEventListener("pointerdown", stop);
+  track.addEventListener("keydown", stop);
+  ["bprev", "bnext"].forEach((id) => { const b = document.getElementById(id); if (b) b.addEventListener("click", stop); });
+  new IntersectionObserver((list) => { visible = list[0].isIntersecting; visible ? start() : pause(); }, { threshold: 0.3 }).observe(track);
+  document.addEventListener("visibilitychange", () => { document.hidden ? pause() : start(); });
+})();
