@@ -1424,3 +1424,26 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
   .fchip.f4 { right: -4%; }
 }
 @media (prefers-reduced-motion: reduce) { .fchip { animation: none; } }
+
+/* ============================================================
+   CORREÇÃO DO MENU NO CELULAR: o desfoque do cabeçalho fica numa camada atrás,
+   porque backdrop-filter no próprio cabeçalho "prende" o menu aberto (position: fixed)
+   dentro de uma caixa de 68px de altura quando a página já foi rolada.
+   ============================================================ */
+.site-header.scrolled,
+[data-theme="dark"] .site-header.scrolled {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.site-header::before {
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  background: rgba(236, 231, 221, .86);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  opacity: 0; transition: opacity .3s;
+  pointer-events: none;
+}
+[data-theme="dark"] .site-header::before { background: rgba(13, 13, 13, .82); }
+.site-header.scrolled::before { opacity: 1; }
+.site-header.open::before { opacity: 1; }
