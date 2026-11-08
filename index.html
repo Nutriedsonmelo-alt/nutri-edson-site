@@ -37,7 +37,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Questrial&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261119">
+<link rel="stylesheet" href="styles.css?v=20261120">
 
 <!-- Schema.org: profissional de saúde -->
 <script type="application/ld+json">
@@ -50,7 +50,11 @@
   "description": "Nutricionista especializado em emagrecimento, com acompanhamento individualizado para perda de gordura, preservação de massa muscular e resultados sustentáveis.",
   "telephone": "+5582982051810",
   "priceRange": "$$",
-  "areaServed": "BR",
+  "areaServed": [
+    {"@type": "City", "name": "Maceió"},
+    {"@type": "City", "name": "Maragogi"},
+    {"@type": "AdministrativeArea", "name": "Alagoas"}
+  ],
   "founder": {
     "@type": "Person",
     "name": "Edson Melo",
@@ -326,6 +330,10 @@
           <p class="mode-tag">Presencial</p>
           <h3>Acompanhamento presencial</h3>
           <p>Consulta frente a frente, com avaliação completa e orientação próxima.</p>
+          <ul class="mode-places" aria-label="Cidades de atendimento presencial">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Maceió, Alagoas</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Maragogi, Alagoas</li>
+          </ul>
           <a class="btn btn-secondary" href="https://wa.me/5582982051810?text=Gostaria%20de%20saber%20mais%20sobre%20o%20acompanhamento%20presencial." target="_blank" rel="noopener">Quero o presencial</a>
         </article>
       </div>
@@ -404,6 +412,6 @@
   </div>
 </footer>
 
-<script src="script.js?v=20261119"></script>
+<script src="script.js?v=20261120"></script>
 </body>
 </html>

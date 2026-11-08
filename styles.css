@@ -1462,3 +1462,15 @@ html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *
   .nav-wrap { gap: var(--space-3); padding-top: var(--space-3); }
   .site-header .nav-cta, .site-header .btn.nav-cta { min-height: 46px; padding: .5rem 1.5rem; font-size: 1.15rem; }
 }
+
+/* ===== Cidades do atendimento presencial ===== */
+.mode-places { display: flex; flex-wrap: wrap; gap: 8px; margin: var(--space-1) 0 0; }
+.mode-places li {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px 6px 10px;
+  border: 1px solid var(--color-gold-dim);
+  border-radius: 999px;
+  background: rgba(201, 165, 104, .12);
+  font-size: 13.5px; color: var(--color-text);
+}
+.mode-places svg { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--color-gold); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
